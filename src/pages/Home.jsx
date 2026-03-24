@@ -163,16 +163,18 @@ const Home = () => {
             <button className="btn btn-ghost">View All</button>
           </div>
           
-          {loading ? (
-             <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--color-text-muted)' }}>Loading live events...</div>
-          ) : (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 'var(--spacing-6)' }}>
-              {[...CUSTOM_EVENTS, ...events]
-                .filter(e => activeCategory === 'All' || e.category === activeCategory)
-                .map(event => (
-                  <EventCard key={event.id} event={event} />
-                ))}
-            </div>
+          {/* Always render — custom events are instant, live events merge in when ready */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 'var(--spacing-6)' }}>
+            {[...CUSTOM_EVENTS, ...events]
+              .filter(e => activeCategory === 'All' || e.category === activeCategory)
+              .map(event => (
+                <EventCard key={event.id} event={event} />
+              ))}
+          </div>
+          {loading && (
+            <p style={{ marginTop: 'var(--spacing-4)', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-muted)', textAlign: 'center' }}>
+              ⏳ Fetching live events...
+            </p>
           )}
         </section>
 

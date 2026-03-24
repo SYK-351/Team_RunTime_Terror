@@ -11,47 +11,43 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     // Listen to Firebase Auth state
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
       if (firebaseUser) {
-        // Fetch the user's role and college from Firestore
-        try {
-          const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
-          if (userDoc.exists()) {
-            const data = userDoc.data();
-            const role = data.role || 'organizer';
-            console.log('[EventFlex] Auth state — user:', firebaseUser.email, '| role:', role);
-            setUser({
-              uid: firebaseUser.uid,
-              email: firebaseUser.email,
-              name: data.name || firebaseUser.email.split('@')[0],
-              role,
-              collegeId: data.collegeId
-            });
-          } else {
-            // Fallback for demo (if document creation lagged)
-            const domain = firebaseUser.email.split('@')[1] || 'unknown.edu';
-            setUser({
-              uid: firebaseUser.uid,
-              email: firebaseUser.email,
-              name: firebaseUser.email.split('@')[0],
-              role: 'organizer',
-              collegeId: domain
-            });
-          }
-        } catch (error) {
-          console.error("Error fetching user role:", error);
-          setUser({ 
-            uid: firebaseUser.uid, 
-            email: firebaseUser.email, 
-            name: firebaseUser.email.split('@')[0],
-            role: 'organizer',
-            collegeId: firebaseUser.email.split('@')[1] || 'unknown.edu'
-          });
+        // 1. Set a basic user immediately so ProtectedRoute unblocks with no delay
+        const cachedRole = sessionStorage.getItem(`role_${firebaseUser.uid}`);
+        setUser({
+          uid: firebaseUser.uid,
+          email: firebaseUser.email,
+          name: firebaseUser.email.split('@')[0],
+          role: cachedRole || 'organizer', // use cached role if available
+          collegeId: firebaseUser.email.split('@')[1] || 'unknown'
+        });
+        setLoading(false); // ← unblock routes immediately
+
+        // 2. Fetch full role from Firestore in background (no UI wait)
+        if (!cachedRole) {
+          getDoc(doc(db, 'users', firebaseUser.uid))
+            .then((userDoc) => {
+              if (userDoc.exists()) {
+                const data = userDoc.data();
+                const role = data.role || 'organizer';
+                console.log('[EventFlex] Role loaded:', firebaseUser.email, '→', role);
+                sessionStorage.setItem(`role_${firebaseUser.uid}`, role); // cache it
+                setUser({
+                  uid: firebaseUser.uid,
+                  email: firebaseUser.email,
+                  name: data.name || firebaseUser.email.split('@')[0],
+                  role,
+                  collegeId: data.collegeId || firebaseUser.email.split('@')[1]
+                });
+              }
+            })
+            .catch((err) => console.error('[EventFlex] Role fetch error:', err));
         }
       } else {
         setUser(null);
+        setLoading(false);
       }
-      setLoading(false);
     });
 
     return () => unsubscribe();
@@ -59,8 +55,9 @@ export const AuthProvider = ({ children }) => {
 
   const logout = async () => {
     try {
+      // Clear cached role before signing out
+      if (user?.uid) sessionStorage.removeItem(`role_${user.uid}`);
       await signOut(auth);
-      // setUser(null) is handled by onAuthStateChanged
     } catch (error) {
       console.error("Error signing out:", error);
     }
