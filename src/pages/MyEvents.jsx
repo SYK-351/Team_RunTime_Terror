@@ -1,62 +1,101 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Calendar, Clock, Edit3, X } from 'lucide-react';
 import { useNotification } from '../context/NotificationContext';
-
-const INITIAL_EVENTS = [
-  { id: 1, title: 'Annual Tech Fest', college: 'NYU', date: '2026-08-20', time: '09:00', description: 'A great tech festival.', status: 'Upcoming' },
-  { id: 2, title: 'Coding Bootcamp', college: 'Columbia University', date: '2025-11-15', time: '10:00', description: 'Intensive weekend bootcamp.', status: 'Completed' }
-];
+import { useAuth } from '../context/AuthContext';
+import { db } from '../firebase/config';
+import { collection, query, where, getDocs, doc, updateDoc } from 'firebase/firestore';
 
 const MyEvents = () => {
-  const [events, setEvents] = useState(INITIAL_EVENTS);
+  const [events, setEvents] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingEvent, setEditingEvent] = useState(null);
   const { triggerUpdate } = useNotification();
+  const { user } = useAuth();
+
+  useEffect(() => {
+    const fetchEvents = async () => {
+      if (!user) return;
+      try {
+        const q = query(collection(db, 'events'), where('createdBy', '==', user.uid));
+        const querySnapshot = await getDocs(q);
+        const fetched = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        setEvents(fetched);
+      } catch (err) {
+        console.error(err);
+      }
+      setLoading(false);
+    };
+    fetchEvents();
+  }, [user]);
 
   const handleEditClick = (evt) => {
     setEditingEvent({ ...evt });
     setIsEditModalOpen(true);
   };
 
-  const saveChanges = () => {
-    setEvents(events.map(e => e.id === editingEvent.id ? editingEvent : e));
-    triggerUpdate(editingEvent.title);
-    setIsEditModalOpen(false);
-    alert('Event updated and notifications sent to registered users!');
+  const saveChanges = async () => {
+    try {
+      const eventRef = doc(db, 'events', editingEvent.id);
+      await updateDoc(eventRef, {
+        description: editingEvent.description || '',
+        date: editingEvent.date || '',
+        time: editingEvent.time || ''
+      });
+      setEvents(events.map(e => e.id === editingEvent.id ? editingEvent : e));
+      triggerUpdate(editingEvent.title);
+      setIsEditModalOpen(false);
+      alert('Event updated and notifications sent to registered users!');
+    } catch(err) {
+      console.error(err);
+      alert('Failed to update event');
+    }
   };
+
+  if (loading) return <div style={{ padding: '2rem', textAlign: 'center' }}>Loading events...</div>;
 
   return (
     <div className="container" style={styles.page}>
       <h1 style={styles.title}>My Events</h1>
       <p style={styles.subtitle}>Manage the events you have organized.</p>
 
-      <div style={styles.list}>
-        {events.map((evt) => (
-          <div key={evt.id} className="card" style={styles.eventCard}>
-            <div style={styles.eventHeader}>
-              <h3 style={styles.eventTitle}>{evt.title} <span style={styles.collegeName}>at {evt.college}</span></h3>
-              <span className={`badge ${evt.status === 'Completed' ? 'badge-primary' : ''}`} style={{ backgroundColor: evt.status === 'Completed' ? 'var(--color-primary)' : 'var(--color-background)', color: evt.status === 'Completed' ? 'white' : 'var(--color-text-muted)' }}>
-                {evt.status}
-              </span>
-            </div>
-            
-            <p style={styles.eventDesc}>{evt.description}</p>
-            
-            <div style={styles.eventFooter}>
-              <div style={styles.eventMeta}>
-                <span style={styles.metaItem}><Calendar size={14} /> {evt.date}</span>
-                <span style={styles.metaItem}><Clock size={14} /> {evt.time}</span>
+      {events.length === 0 ? (
+        <div style={{ padding: '3rem', textAlign: 'center', backgroundColor: 'var(--color-surface)', borderRadius: '12px' }}>
+          <p style={{ color: 'var(--color-text-muted)' }}>You haven't created any events yet.</p>
+        </div>
+      ) : (
+        <div style={styles.list}>
+          {events.map((evt) => (
+            <div key={evt.id} className="card" style={styles.eventCard}>
+              <div style={styles.eventHeader}>
+                <h3 style={styles.eventTitle}>{evt.title} <span style={styles.collegeName}>at {evt.collegeId}</span></h3>
+                <span className={`badge`} style={{ 
+                  backgroundColor: evt.status === 'approved' ? 'var(--color-success)' : evt.status === 'rejected' ? 'var(--color-danger)' : 'var(--color-warning)', 
+                  color: 'white',
+                  textTransform: 'capitalize'
+                }}>
+                  {evt.status || 'pending'}
+                </span>
               </div>
               
-              {evt.status !== 'Completed' && (
-                <button className="btn btn-secondary" style={styles.editBtn} onClick={() => handleEditClick(evt)}>
-                  <Edit3 size={14} /> Edit Event
-                </button>
-              )}
+              <p style={styles.eventDesc}>{evt.description || 'No description provided.'}</p>
+              
+              <div style={styles.eventFooter}>
+                <div style={styles.eventMeta}>
+                  {evt.date && <span style={styles.metaItem}><Calendar size={14} /> {evt.date}</span>}
+                  {evt.time && <span style={styles.metaItem}><Clock size={14} /> {evt.time}</span>}
+                </div>
+                
+                {evt.status === 'approved' && (
+                  <button className="btn btn-secondary" style={styles.editBtn} onClick={() => handleEditClick(evt)}>
+                    <Edit3 size={14} /> Edit Event
+                  </button>
+                )}
+              </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
 
       {isEditModalOpen && (
         <div style={styles.modalOverlay}>

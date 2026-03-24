@@ -35,6 +35,7 @@ const Navbar = () => {
   };
 
   const isOrganizer = user?.role === 'organizer';
+  const isAdmin = user?.role === 'admin';
 
   return (
     <nav style={styles.navbar}>
@@ -63,14 +64,20 @@ const Navbar = () => {
             <Building size={16} /> Create Event
           </Link>
 
+          {/* Admin Specific Tools */}
+          {isAdmin && (
+            <div style={styles.organizerSection}>
+              <Link to="/admin" className="btn btn-primary" style={{ padding: '0.4rem 1rem', fontSize: 'var(--font-size-sm)', backgroundColor: 'var(--color-danger)', borderColor: 'var(--color-danger)' }}>
+                <LayoutDashboard size={16} /> Admin Panel
+              </Link>
+            </div>
+          )}
+
           {/* Organizer Specific Tools */}
           {isOrganizer && (
             <div style={styles.organizerSection}>
               <Link to="/dashboard" className="btn btn-secondary" style={{ padding: '0.4rem 1rem', fontSize: 'var(--font-size-sm)' }}>
                 <LayoutDashboard size={16} /> Organizer Panel
-              </Link>
-              <Link to="/dashboard/create" className="btn btn-primary" style={{ padding: '0.4rem 1rem', fontSize: 'var(--font-size-sm)' }}>
-                <PlusCircle size={16} /> Create Event
               </Link>
             </div>
           )}
@@ -131,7 +138,7 @@ const Navbar = () => {
               onClick={() => setIsProfileOpen(!isProfileOpen)}
             >
               <div style={styles.avatar}>
-                {user ? user.name.charAt(0).toUpperCase() : 'U'}
+                {user && user.name ? user.name.charAt(0).toUpperCase() : 'U'}
               </div>
               <ChevronDown size={14} style={{ color: 'var(--color-text-muted)' }} />
             </button>

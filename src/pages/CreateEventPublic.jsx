@@ -5,6 +5,9 @@ import {
   DollarSign, Target
 } from 'lucide-react';
 import { useNotification } from '../context/NotificationContext';
+import { useAuth } from '../context/AuthContext';
+import { db } from '../firebase/config';
+import { collection, addDoc } from 'firebase/firestore';
 
 const STEPS = [
   { id: 1, title: 'Basic Details', icon: FileText, desc: 'Name, logo, type, etc.' },
@@ -18,19 +21,32 @@ const CreateEventPublic = () => {
   const [activeStep, setActiveStep] = useState(1);
   const [completedSteps, setCompletedSteps] = useState([1]);
   const { triggerWishlistNotification } = useNotification();
+  const { user } = useAuth();
 
   const [hostOrganization, setHostOrganization] = useState('');
   const [eventTitle, setEventTitle] = useState('');
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (activeStep < STEPS.length) {
       if (!completedSteps.includes(activeStep + 1)) {
         setCompletedSteps([...completedSteps, activeStep + 1]);
       }
       setActiveStep(activeStep + 1);
     } else {
-      triggerWishlistNotification(eventTitle || 'Untitled Event', hostOrganization || 'Unknown College');
-      alert('Event successfully created and sent for review!');
+      try {
+        await addDoc(collection(db, 'events'), {
+          title: eventTitle || 'Untitled Event',
+          hostOrganization: hostOrganization || 'Unknown College',
+          collegeId: user?.collegeId || 'unknown.edu',
+          createdBy: user?.uid || 'anonymous',
+          status: 'pending',
+          createdAt: new Date().toISOString()
+        });
+        triggerWishlistNotification(eventTitle || 'Untitled Event', hostOrganization || 'Unknown College');
+        alert('Event successfully created and sent for Admin review!');
+      } catch (error) {
+        alert('Error creating event: ' + error.message);
+      }
     }
   };
 

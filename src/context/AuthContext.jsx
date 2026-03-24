@@ -18,11 +18,13 @@ export const AuthProvider = ({ children }) => {
           const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
           if (userDoc.exists()) {
             const data = userDoc.data();
+            const role = data.role || 'organizer';
+            console.log('[EventFlex] Auth state — user:', firebaseUser.email, '| role:', role);
             setUser({
               uid: firebaseUser.uid,
               email: firebaseUser.email,
               name: data.name || firebaseUser.email.split('@')[0],
-              role: data.role || 'organizer', // organizer or admin
+              role,
               collegeId: data.collegeId
             });
           } else {
@@ -38,7 +40,13 @@ export const AuthProvider = ({ children }) => {
           }
         } catch (error) {
           console.error("Error fetching user role:", error);
-          setUser({ uid: firebaseUser.uid, email: firebaseUser.email, role: 'organizer' });
+          setUser({ 
+            uid: firebaseUser.uid, 
+            email: firebaseUser.email, 
+            name: firebaseUser.email.split('@')[0],
+            role: 'organizer',
+            collegeId: firebaseUser.email.split('@')[1] || 'unknown.edu'
+          });
         }
       } else {
         setUser(null);

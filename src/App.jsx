@@ -10,9 +10,10 @@ import ManageEvent from './pages/organizer/ManageEvent';
 import CreateEvent from './pages/organizer/CreateEvent';
 import CreateEventPublic from './pages/CreateEventPublic';
 import MyEvents from './pages/MyEvents';
+import AdminDashboard from './pages/admin/AdminDashboard';
 import Login from './pages/auth/Login';
 import ProtectedRoute from './components/ProtectedRoute';
-import { AuthProvider } from './context/AuthContext';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import { NotificationProvider } from './context/NotificationContext';
 
 // Placeholder Pages since they are not built yet
@@ -22,6 +23,18 @@ const Placeholder = ({ title }) => (
     <p>This page is under construction.</p>
   </div>
 );
+
+// Guard: only allows users whose role === 'admin'
+const AdminRoute = ({ children }) => {
+  const { user, loading } = useAuth();
+  if (loading) return null;
+  if (!user) return <Navigate to="/login" replace />;
+  if (user.role !== 'admin') {
+    console.warn('[EventFlex] Access denied to /admin — role is:', user.role);
+    return <Navigate to="/home" replace />;
+  }
+  return children;
+};
 
 function App() {
   return (
@@ -42,6 +55,8 @@ function App() {
               <Route path="/my-events" element={<ParticipantDashboard />} />
               <Route path="/create-event" element={<CreateEventPublic />} />
               <Route path="/my-created-events" element={<MyEvents />} />
+              {/* Admin route — blocked for non-admins */}
+              <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
             </Route>
 
             {/* Protected Organizer Routes with Sidebar */}
@@ -60,3 +75,4 @@ function App() {
 }
 
 export default App;
+
