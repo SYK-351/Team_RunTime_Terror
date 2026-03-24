@@ -4,6 +4,7 @@ import {
   CheckCircle, ChevronRight, Image as ImageIcon,
   DollarSign, Target
 } from 'lucide-react';
+import { useNotification } from '../context/NotificationContext';
 
 const STEPS = [
   { id: 1, title: 'Basic Details', icon: FileText, desc: 'Name, logo, type, etc.' },
@@ -16,6 +17,10 @@ const STEPS = [
 const CreateEventPublic = () => {
   const [activeStep, setActiveStep] = useState(1);
   const [completedSteps, setCompletedSteps] = useState([1]);
+  const { triggerWishlistNotification } = useNotification();
+
+  const [hostOrganization, setHostOrganization] = useState('');
+  const [eventTitle, setEventTitle] = useState('');
 
   const handleNext = () => {
     if (activeStep < STEPS.length) {
@@ -24,6 +29,7 @@ const CreateEventPublic = () => {
       }
       setActiveStep(activeStep + 1);
     } else {
+      triggerWishlistNotification(eventTitle || 'Untitled Event', hostOrganization || 'Unknown College');
       alert('Event successfully created and sent for review!');
     }
   };
@@ -112,7 +118,7 @@ const CreateEventPublic = () => {
               <div className="animate-fade-in" style={styles.formSection}>
                 <div className="input-group">
                   <label className="input-label">Opportunity Title <span style={styles.required}>*</span></label>
-                  <input type="text" className="input-field" placeholder="e.g. Global Tech Hackathon 2026" />
+                  <input type="text" className="input-field" placeholder="e.g. Global Tech Hackathon 2026" value={eventTitle} onChange={e => setEventTitle(e.target.value)} />
                   <p style={styles.helperText}>Make it catchy! This is the first thing people will see.</p>
                 </div>
 
@@ -139,7 +145,7 @@ const CreateEventPublic = () => {
                   </div>
                   <div className="input-group">
                     <label className="input-label">Host Organization</label>
-                    <input type="text" className="input-field" placeholder="e.g. Google Developers Group" />
+                    <input type="text" className="input-field" placeholder="e.g. New York University" value={hostOrganization} onChange={e => setHostOrganization(e.target.value)} />
                   </div>
                 </div>
 

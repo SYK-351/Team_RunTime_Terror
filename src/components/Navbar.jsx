@@ -2,9 +2,13 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Search, Bell, User, LogOut, PlusCircle, LayoutDashboard, Settings, Calendar, Building, ChevronDown } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useNotification } from '../context/NotificationContext';
 
 const Navbar = () => {
   const { user, logout } = useAuth();
+  const { notifications, markAsRead, markAllAsRead } = useNotification();
+  const unreadCount = notifications.filter(n => !n.read).length;
+
   const navigate = useNavigate();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isNotifOpen, setIsNotifOpen] = useState(false);
@@ -79,31 +83,42 @@ const Navbar = () => {
               onClick={() => setIsNotifOpen(!isNotifOpen)}
             >
               <Bell size={20} />
-              <span style={styles.notificationDot}></span>
+              {unreadCount > 0 && <span style={styles.notificationDot}></span>}
             </button>
 
             {isNotifOpen && (
               <div style={{ ...styles.dropdown, width: '300px' }}>
                 <div style={{ ...styles.dropdownHeader, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <p style={styles.dropdownName}>Notifications</p>
-                  <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-primary)', cursor: 'pointer' }}>Mark all read</span>
+                  <span onClick={markAllAsRead} style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-primary)', cursor: 'pointer' }}>Mark all read</span>
                 </div>
                 <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
-                  <div style={{ padding: '0.75rem 1rem', borderBottom: '1px solid var(--color-border)', backgroundColor: 'rgba(99, 102, 241, 0.05)' }}>
-                    <p style={{ fontSize: 'var(--font-size-sm)', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                      <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: 'var(--color-primary)' }}></span>
-                      New Announcement
-                    </p>
-                    <p style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-muted)', marginTop: '0.25rem' }}>
-                      HackNY updated the event location to Room 402.
-                    </p>
-                  </div>
-                  <div style={{ padding: '0.75rem 1rem', borderBottom: '1px solid var(--color-border)' }}>
-                    <p style={{ fontSize: 'var(--font-size-sm)', fontWeight: 500 }}>Reply to your Query</p>
-                    <p style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-muted)', marginTop: '0.25rem' }}>
-                      Organizer answered: "Yes, teams can be cross-college."
-                    </p>
-                  </div>
+                  {notifications.length === 0 ? (
+                    <div style={{ padding: '1rem', textAlign: 'center', color: 'var(--color-text-muted)', fontSize: '13px' }}>
+                      No new notifications
+                    </div>
+                  ) : (
+                    notifications.map(notif => (
+                      <div 
+                        key={notif.id} 
+                        style={{ 
+                          padding: '0.75rem 1rem', 
+                          borderBottom: '1px solid var(--color-border)', 
+                          backgroundColor: notif.read ? 'transparent' : 'rgba(99, 102, 241, 0.05)',
+                          cursor: 'pointer'
+                        }}
+                        onClick={() => markAsRead(notif.id)}
+                      >
+                        <p style={{ fontSize: 'var(--font-size-sm)', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                          {!notif.read && <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: 'var(--color-primary)' }}></span>}
+                          {notif.type}
+                        </p>
+                        <p style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-muted)', marginTop: '0.25rem' }}>
+                          {notif.message}
+                        </p>
+                      </div>
+                    ))
+                  )}
                 </div>
               </div>
             )}

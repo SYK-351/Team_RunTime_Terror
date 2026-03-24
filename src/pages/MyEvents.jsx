@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Calendar, Clock, Edit3, X } from 'lucide-react';
+import { useNotification } from '../context/NotificationContext';
 
 const INITIAL_EVENTS = [
   { id: 1, title: 'Annual Tech Fest', college: 'NYU', date: '2026-08-20', time: '09:00', description: 'A great tech festival.', status: 'Upcoming' },
@@ -10,6 +11,7 @@ const MyEvents = () => {
   const [events, setEvents] = useState(INITIAL_EVENTS);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingEvent, setEditingEvent] = useState(null);
+  const { triggerUpdate } = useNotification();
 
   const handleEditClick = (evt) => {
     setEditingEvent({ ...evt });
@@ -18,7 +20,9 @@ const MyEvents = () => {
 
   const saveChanges = () => {
     setEvents(events.map(e => e.id === editingEvent.id ? editingEvent : e));
+    triggerUpdate(editingEvent.title);
     setIsEditModalOpen(false);
+    alert('Event updated and notifications sent to registered users!');
   };
 
   return (

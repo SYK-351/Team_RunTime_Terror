@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import EventCard from '../components/EventCard';
 import { Search, MapPin, Sparkles } from 'lucide-react';
+import { useNotification } from '../context/NotificationContext';
 
 const MOCK_EVENTS = [
   {
@@ -57,6 +58,7 @@ const CATEGORIES = ['All', 'Hackathon', 'Culture', 'Sports', 'Coding', 'Workshop
 
 const Home = () => {
   const [activeCategory, setActiveCategory] = useState('All');
+  const { isWishlisted, toggleWishlist } = useNotification();
 
   return (
     <div style={styles.page}>
@@ -116,30 +118,33 @@ const Home = () => {
           </div>
         </section>
 
-        {/* College Explorer Section */}
+        {/* College Wishlist Section */}
         <section style={{ ...styles.section, marginTop: 'var(--spacing-8)' }}>
           <div style={styles.collegeExplorer}>
             <div style={styles.collegeContent}>
-              <h2 style={{ fontSize: 'var(--font-size-2xl)', marginBottom: 'var(--spacing-2)' }}>Explore by College</h2>
-              <p style={{ color: 'var(--color-text-muted)', marginBottom: 'var(--spacing-6)' }}>Find events hosted by specific colleges, universities or clubs in your area.</p>
+              <h2 style={{ fontSize: 'var(--font-size-2xl)', marginBottom: 'var(--spacing-2)' }}>Follow Colleges</h2>
+              <p style={{ color: 'var(--color-text-muted)', marginBottom: 'var(--spacing-6)' }}>Add colleges to your wishlist to get notified when they host new events!</p>
               
-              <div style={{ display: 'flex', gap: 'var(--spacing-4)', alignItems: 'center' }}>
-                <div style={{ position: 'relative', flex: 1 }}>
-                  <MapPin size={18} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-muted)' }} />
-                  <select className="input-field" style={{ width: '100%', paddingLeft: '2.5rem', appearance: 'none' }}>
-                    <option>Select a region or college...</option>
-                    <option>New York University</option>
-                    <option>Stanford University</option>
-                    <option>MIT</option>
-                  </select>
-                </div>
-                <button className="btn btn-primary">Locate</button>
+              <div style={styles.collegeGrid}>
+                {['New York University', 'Stanford University', 'MIT', 'Columbia University'].map((college) => {
+                  const isWishlistedStatus = isWishlisted(college);
+                  return (
+                    <div key={college} className="card" style={styles.collegeCard}>
+                      <div style={styles.collegeCardBrand}>
+                        <div style={styles.collegeAvatar}>{college.charAt(0)}</div>
+                        <p style={{ fontWeight: 600, fontSize: 'var(--font-size-sm)' }}>{college}</p>
+                      </div>
+                      <button 
+                        className={`btn ${isWishlistedStatus ? 'btn-primary' : 'btn-secondary'}`} 
+                        style={{ padding: '0.4rem 0.8rem', fontSize: 'var(--font-size-xs)' }}
+                        onClick={() => toggleWishlist(college)}
+                      >
+                        {isWishlistedStatus ? '❤️ Following' : '🤍 Follow'}
+                      </button>
+                    </div>
+                  );
+                })}
               </div>
-            </div>
-            <div style={styles.collegeImagePlaceholder}>
-              {/* Abstract decoration representing a campus */}
-              <div style={styles.campusDeco1}></div>
-              <div style={styles.campusDeco2}></div>
             </div>
           </div>
         </section>
@@ -241,31 +246,38 @@ const styles = {
     flex: 1,
     zIndex: 1
   },
-  collegeImagePlaceholder: {
-    flex: 1,
-    backgroundColor: 'rgba(99, 102, 241, 0.05)',
-    borderRadius: 'var(--border-radius-lg)',
-    position: 'relative',
-    overflow: 'hidden'
+  collegeGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
+    gap: 'var(--spacing-4)'
   },
-  campusDeco1: {
-    position: 'absolute',
-    width: '150px',
-    height: '150px',
-    borderRadius: '50%',
-    backgroundColor: 'rgba(99, 102, 241, 0.1)',
-    top: '-20px',
-    right: '-20px'
+  collegeCard: {
+    padding: 'var(--spacing-4)',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 'var(--spacing-3)',
+    alignItems: 'center',
+    textAlign: 'center',
+    border: '1px solid var(--color-border)',
+    boxShadow: 'none'
   },
-  campusDeco2: {
-    position: 'absolute',
-    width: '100px',
-    height: '100px',
-    borderRadius: '20px',
-    backgroundColor: 'rgba(236, 72, 153, 0.1)',
-    bottom: '20px',
-    left: '40px',
-    transform: 'rotate(15deg)'
+  collegeCardBrand: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: 'var(--spacing-2)'
+  },
+  collegeAvatar: {
+    width: '40px',
+    height: '40px',
+    borderRadius: '8px',
+    backgroundColor: 'var(--color-primary)',
+    color: 'white',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontSize: 'var(--font-size-lg)',
+    fontWeight: 'bold'
   }
 };
 

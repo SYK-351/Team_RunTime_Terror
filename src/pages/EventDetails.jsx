@@ -1,16 +1,23 @@
 import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { Calendar, MapPin, Users, Globe, Share2, Heart, ShieldAlert } from 'lucide-react';
+import { useNotification } from '../context/NotificationContext';
+import { useAuth } from '../context/AuthContext';
 
 const EventDetails = () => {
   const { id } = useParams();
   const [activeTab, setActiveTab] = useState('Overview');
+  const { registerForEvent, isRegistered, triggerAnnouncement } = useNotification();
+  const { user } = useAuth();
+  const isOrganizer = user?.role === 'organizer';
+  const eventId = Number(id) || 1;
 
   // Mock Event Data based on ID or just generic
   const event = {
+    id: eventId,
     title: 'HackNY Summer 2026',
     organizer: 'NYU Computer Science Club',
-    date: 'July 15 - 17, 2026',
+    date: '2026-07-20', // ISO format for easy Date parsing in mock backend
     time: '09:00 AM EST',
     location: 'NYU Kimmel Center, New York, NY',
     attendees: 540,
@@ -27,6 +34,13 @@ const EventDetails = () => {
   };
 
   const TABS = ['Overview', 'Announcements', 'Discussion'];
+  const hasRegistered = isRegistered(event.id);
+
+  const handleRegister = () => {
+    if (!hasRegistered) {
+      registerForEvent(event);
+    }
+  };
 
   return (
     <div style={styles.page}>
@@ -86,6 +100,18 @@ const EventDetails = () => {
                 <div style={styles.emptyIcon}>📢</div>
                 <h4>No announcements yet</h4>
                 <p style={{ color: 'var(--color-text-muted)' }}>The organizers haven't posted any updates.</p>
+                {isOrganizer && (
+                  <button 
+                    className="btn btn-primary" 
+                    style={{ marginTop: '1rem' }}
+                    onClick={() => {
+                      triggerAnnouncement(event.title);
+                      alert('Announcement sent to all registered participants!');
+                    }}
+                  >
+                    Post an Announcement
+                  </button>
+                )}
               </div>
             )}
 
@@ -122,7 +148,7 @@ const EventDetails = () => {
               <Calendar size={20} style={styles.infoIcon} />
               <div>
                 <p style={styles.infoLabel}>Date and Time</p>
-                <p style={styles.infoValue}>{event.date}</p>
+                <p style={styles.infoValue}>July 20, 2026</p>
                 <p style={styles.infoSub}>{event.time}</p>
               </div>
             </div>
@@ -139,8 +165,13 @@ const EventDetails = () => {
             <div style={styles.separator}></div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1rem' }}>
-              <button className="btn btn-primary" style={{ width: '100%', padding: '0.75rem' }}>
-                Register Now - {event.price}
+              <button 
+                className={`btn ${hasRegistered ? 'btn-secondary' : 'btn-primary'}`} 
+                style={{ width: '100%', padding: '0.75rem' }}
+                onClick={handleRegister}
+                disabled={hasRegistered}
+              >
+                {hasRegistered ? 'Registered' : `Register Now - ${event.price}`}
               </button>
               <div style={styles.actionRow}>
                 <button className="btn btn-secondary" style={{ flex: 1, justifyContent: 'center' }}>
