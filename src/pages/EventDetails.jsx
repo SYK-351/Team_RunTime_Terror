@@ -90,11 +90,26 @@ const EventDetails = () => {
             )}
 
             {activeTab === 'Discussion' && (
-              <div className="animate-fade-in" style={styles.emptyState}>
-                <div style={styles.emptyIcon}>💬</div>
-                <h4>Join the discussion</h4>
-                <p style={{ color: 'var(--color-text-muted)' }}>Have a question? Ask the organizers or other attendees.</p>
-                <button className="btn btn-secondary" style={{ marginTop: '1rem' }}>Ask a Question</button>
+              <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                <h3 style={styles.sectionHeader}>Q&A Discussion</h3>
+                
+                {/* Mocked Q&A */}
+                <div style={{ padding: '1.25rem', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-md)', backgroundColor: 'var(--color-surface)' }}>
+                  <p style={{ fontWeight: 600, fontSize: 'var(--font-size-base)' }}>Will there be hardware lending?</p>
+                  <p style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-muted)', marginTop: '0.25rem' }}>Asked by Anonymous Student</p>
+                  
+                  <div style={{ marginTop: '1rem', padding: '1rem', backgroundColor: 'var(--color-background)', borderRadius: 'var(--border-radius-sm)', borderLeft: '3px solid var(--color-primary)' }}>
+                    <p style={{ fontSize: 'var(--font-size-sm)', fontWeight: 600, marginBottom: '0.25rem' }}>Organizer Reply:</p>
+                    <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-main)' }}>Yes! We will have a hardware lab sponsored by Major League Hacking.</p>
+                  </div>
+                </div>
+
+                {/* Input for new question */}
+                <div style={{ marginTop: '1.5rem', padding: '1.5rem', backgroundColor: 'var(--color-background)', borderRadius: 'var(--border-radius-md)' }}>
+                  <h4 style={{ marginBottom: '0.75rem' }}>Ask the Organizers</h4>
+                  <textarea className="input-field" rows="3" placeholder="What would you like to know about this event?"></textarea>
+                  <button className="btn btn-primary" style={{ marginTop: '0.75rem' }}>Post Question</button>
+                </div>
               </div>
             )}
           </div>

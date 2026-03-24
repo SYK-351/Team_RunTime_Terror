@@ -1,8 +1,16 @@
 import React, { useState } from 'react';
-import { Search, Edit3, Trash2, Megaphone } from 'lucide-react';
+import { Search, Edit3, Trash2, Megaphone, X } from 'lucide-react';
 
 const ManageEvent = () => {
   const [activeTab, setActiveTab] = useState('Participants');
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isAnnounceModalOpen, setIsAnnounceModalOpen] = useState(false);
+  const [eventDetails, setEventDetails] = useState({
+    date: 'July 15 - 17, 2026',
+    location: 'New York University, NY',
+    fee: '0',
+    prizePool: '1000'
+  });
   
   const participants = [
     { id: 1, name: 'Alice Chen', email: 'alice@nyu.edu', status: 'Confirmed', ticket: 'General' },
@@ -16,11 +24,14 @@ const ManageEvent = () => {
       <div style={styles.header}>
         <div>
           <h1 style={styles.pageTitle}>Manage HackNY Summer 2026</h1>
-          <p style={{ color: 'var(--color-text-muted)' }}>Event Date: July 15 - 17, 2026</p>
+          <p style={{ color: 'var(--color-text-muted)' }}>
+            Date: {eventDetails.date} | Location: {eventDetails.location} <br/>
+            Fee: ${eventDetails.fee} | Prize Pool: ${eventDetails.prizePool}
+          </p>
         </div>
         <div style={{ display: 'flex', gap: '0.5rem' }}>
-          <button className="btn btn-secondary"><Edit3 size={16} /> Edit Details</button>
-          <button className="btn btn-primary"><Megaphone size={16} /> New Announcement</button>
+          <button className="btn btn-secondary" onClick={() => setIsEditModalOpen(true)}><Edit3 size={16} /> Edit Details</button>
+          <button className="btn btn-primary" onClick={() => setIsAnnounceModalOpen(true)}><Megaphone size={16} /> New Announcement</button>
         </div>
       </div>
 
@@ -85,13 +96,103 @@ const ManageEvent = () => {
             </div>
           )}
           
-          {activeTab !== 'Participants' && (
-            <div style={styles.emptyState}>
-              <p style={{ color: 'var(--color-text-muted)' }}>You have no items in this tab yet.</p>
+          {activeTab === 'Announcements' && (
+            <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <div style={{ padding: '1.5rem', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-md)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <p style={{ fontWeight: 600 }}>Location Update</p>
+                  <p style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-muted)' }}>Posted 2 days ago</p>
+                </div>
+                <p style={{ marginTop: '0.5rem', fontSize: 'var(--font-size-sm)' }}>HackNY updated the event location to Room 402.</p>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'Queries' && (
+            <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              
+              <div style={{ padding: '1.5rem', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-md)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                  <div>
+                    <p style={{ fontWeight: 600 }}>Is there a code of conduct?</p>
+                    <p style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-muted)' }}>Asked by Student B</p>
+                  </div>
+                  <span className="badge" style={{ backgroundColor: 'var(--color-warning)', color: '#fff', border: 'none' }}>Unanswered</span>
+                </div>
+                <div style={{ marginTop: '1rem' }}>
+                  <textarea className="input-field" rows="2" placeholder="Write a reply to the student..."></textarea>
+                  <button className="btn btn-primary" style={{ marginTop: '0.75rem' }}>Submit Reply</button>
+                </div>
+              </div>
+
+              <div style={{ padding: '1.5rem', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-md)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                  <div>
+                    <p style={{ fontWeight: 600 }}>Will there be hardware lending?</p>
+                    <p style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-muted)' }}>Asked by Anonymous</p>
+                  </div>
+                  <span className="badge badge-primary">Answered</span>
+                </div>
+                <div style={{ marginTop: '1rem', padding: '1rem', backgroundColor: 'var(--color-background)', borderRadius: 'var(--border-radius-sm)' }}>
+                  <p style={{ fontSize: 'var(--font-size-sm)', fontWeight: 600, marginBottom: '0.25rem' }}>Your Reply:</p>
+                  <p style={{ fontSize: 'var(--font-size-sm)' }}>Yes! We will have a hardware lab sponsored by Major League Hacking.</p>
+                </div>
+              </div>
+
             </div>
           )}
         </div>
       </div>
+
+      {isEditModalOpen && (
+        <div style={styles.modalOverlay}>
+          <div style={styles.modalContent}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
+              <h2>Edit Event Details</h2>
+              <button style={styles.closeBtn} onClick={() => setIsEditModalOpen(false)}><X size={20} /></button>
+            </div>
+            <div className="input-group">
+              <label className="input-label">Event Date</label>
+              <input type="text" className="input-field" value={eventDetails.date} onChange={(e) => setEventDetails({...eventDetails, date: e.target.value})} />
+            </div>
+            <div className="input-group">
+              <label className="input-label">Location</label>
+              <input type="text" className="input-field" value={eventDetails.location} onChange={(e) => setEventDetails({...eventDetails, location: e.target.value})} />
+            </div>
+            <div style={{ display: 'flex', gap: '1rem' }}>
+              <div className="input-group" style={{ flex: 1, marginBottom: 0 }}>
+                <label className="input-label">Registration Fee ($)</label>
+                <input type="number" className="input-field" value={eventDetails.fee} onChange={(e) => setEventDetails({...eventDetails, fee: e.target.value})} min="0" />
+              </div>
+              <div className="input-group" style={{ flex: 1, marginBottom: 0 }}>
+                <label className="input-label">Prize Pool ($)</label>
+                <input type="number" className="input-field" value={eventDetails.prizePool} onChange={(e) => setEventDetails({...eventDetails, prizePool: e.target.value})} min="0" />
+              </div>
+            </div>
+            <button className="btn btn-primary" style={{ width: '100%', marginTop: '1.5rem' }} onClick={() => setIsEditModalOpen(false)}>Save Changes</button>
+          </div>
+        </div>
+      )}
+
+      {isAnnounceModalOpen && (
+        <div style={styles.modalOverlay}>
+          <div style={styles.modalContent}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
+              <h2>Send Notification</h2>
+              <button style={styles.closeBtn} onClick={() => setIsAnnounceModalOpen(false)}><X size={20} /></button>
+            </div>
+            <div className="input-group">
+              <label className="input-label">Message</label>
+              <textarea className="input-field" rows="4" placeholder="Enter your announcement here..."></textarea>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
+              <input type="checkbox" id="emailNotif" defaultChecked />
+              <label htmlFor="emailNotif" style={{ fontSize: 'var(--font-size-sm)' }}>Send via Email too</label>
+            </div>
+            <button className="btn btn-primary" style={{ width: '100%' }} onClick={() => { alert('Notification Sent!'); setIsAnnounceModalOpen(false); }}>Send</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
@@ -181,6 +282,29 @@ const styles = {
   emptyState: {
     padding: '4rem 0',
     textAlign: 'center'
+  },
+  modalOverlay: {
+    position: 'fixed',
+    top: 0, left: 0, right: 0, bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 1000
+  },
+  modalContent: {
+    backgroundColor: 'var(--color-surface)',
+    padding: 'var(--spacing-6)',
+    borderRadius: 'var(--border-radius-lg)',
+    width: '400px',
+    maxWidth: '90%',
+    boxShadow: 'var(--shadow-lg)'
+  },
+  closeBtn: {
+    background: 'none',
+    border: 'none',
+    cursor: 'pointer',
+    color: 'var(--color-text-muted)'
   }
 };
 

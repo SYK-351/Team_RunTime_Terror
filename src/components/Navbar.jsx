@@ -7,12 +7,17 @@ const Navbar = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isNotifOpen, setIsNotifOpen] = useState(false);
   const profileRef = useRef(null);
+  const notifRef = useRef(null);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (profileRef.current && !profileRef.current.contains(event.target)) {
         setIsProfileOpen(false);
+      }
+      if (notifRef.current && !notifRef.current.contains(event.target)) {
+        setIsNotifOpen(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -50,6 +55,10 @@ const Navbar = () => {
         {/* Right Actions */}
         <div style={styles.actions}>
           
+          <Link to="/create-event" className="btn btn-secondary" style={{ padding: '0.4rem 1rem', fontSize: 'var(--font-size-sm)', display: 'flex', alignItems: 'center', gap: '0.5rem', marginRight: '0.5rem' }}>
+            <Building size={16} /> Create Event
+          </Link>
+
           {/* Organizer Specific Tools */}
           {isOrganizer && (
             <div style={styles.organizerSection}>
@@ -62,10 +71,43 @@ const Navbar = () => {
             </div>
           )}
 
-          <button className="btn btn-ghost" style={styles.iconBtn}>
-            <Bell size={20} />
-            <span style={styles.notificationDot}></span>
-          </button>
+          {/* Notifications Dropdown */}
+          <div style={styles.userSection} ref={notifRef}>
+            <button 
+              className="btn btn-ghost" 
+              style={styles.iconBtn}
+              onClick={() => setIsNotifOpen(!isNotifOpen)}
+            >
+              <Bell size={20} />
+              <span style={styles.notificationDot}></span>
+            </button>
+
+            {isNotifOpen && (
+              <div style={{ ...styles.dropdown, width: '300px' }}>
+                <div style={{ ...styles.dropdownHeader, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <p style={styles.dropdownName}>Notifications</p>
+                  <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-primary)', cursor: 'pointer' }}>Mark all read</span>
+                </div>
+                <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
+                  <div style={{ padding: '0.75rem 1rem', borderBottom: '1px solid var(--color-border)', backgroundColor: 'rgba(99, 102, 241, 0.05)' }}>
+                    <p style={{ fontSize: 'var(--font-size-sm)', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: 'var(--color-primary)' }}></span>
+                      New Announcement
+                    </p>
+                    <p style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-muted)', marginTop: '0.25rem' }}>
+                      HackNY updated the event location to Room 402.
+                    </p>
+                  </div>
+                  <div style={{ padding: '0.75rem 1rem', borderBottom: '1px solid var(--color-border)' }}>
+                    <p style={{ fontSize: 'var(--font-size-sm)', fontWeight: 500 }}>Reply to your Query</p>
+                    <p style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-muted)', marginTop: '0.25rem' }}>
+                      Organizer answered: "Yes, teams can be cross-college."
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
           
           {/* User Profile Dropdown */}
           <div style={styles.userSection} ref={profileRef}>
@@ -91,8 +133,8 @@ const Navbar = () => {
                   <Link to="/my-events" className="dropdown-item" style={styles.dropdownItem} onClick={() => setIsProfileOpen(false)}>
                     <Calendar size={16} /> My Participations
                   </Link>
-                  <Link to="#" className="dropdown-item" style={styles.dropdownItem} onClick={() => setIsProfileOpen(false)}>
-                    <Building size={16} /> My Organizations
+                  <Link to="/my-created-events" className="dropdown-item" style={styles.dropdownItem} onClick={() => setIsProfileOpen(false)}>
+                    <Building size={16} /> My Events
                   </Link>
                   <Link to="#" className="dropdown-item" style={styles.dropdownItem} onClick={() => setIsProfileOpen(false)}>
                     <Settings size={16} /> Settings

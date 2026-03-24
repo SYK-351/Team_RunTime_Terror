@@ -4,7 +4,7 @@ import { Info, Users, DollarSign, ListChecks, CheckCircle } from 'lucide-react';
 const STEPS = [
   { id: 1, name: 'Basic Details', icon: <Info size={16} /> },
   { id: 2, name: 'Rules & Settings', icon: <ListChecks size={16} /> },
-  { id: 3, name: 'Team & Pricing', icon: <DollarSign size={16} /> }
+  { id: 3, name: 'Payment & Prize Pool', icon: <DollarSign size={16} /> }
 ];
 
 const CreateEvent = () => {
@@ -112,12 +112,27 @@ const CreateEvent = () => {
                 <input type="checkbox" style={{ marginRight: '0.5rem' }} /> Hide event from public search
               </label>
             </div>
+
+            <div style={{ marginTop: '2rem', padding: '1.5rem', backgroundColor: 'var(--color-background)', borderRadius: 'var(--border-radius-md)', border: '1px solid var(--color-border)' }}>
+              <h3 style={{ fontSize: 'var(--font-size-base)', marginBottom: '0.5rem' }}>Custom Registration Fields</h3>
+              <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-muted)', marginBottom: '1.5rem' }}>Ask attendees specific questions during registration.</p>
+              
+              <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
+                <input type="text" className="input-field" style={{ flex: 2 }} placeholder="Field Name (e.g. T-Shirt Size)" />
+                <select className="input-field" style={{ flex: 1 }}>
+                  <option>Short Text</option>
+                  <option>Dropdown Options</option>
+                  <option>Checkbox</option>
+                </select>
+              </div>
+              <button className="btn btn-secondary" style={{ marginTop: '1rem', padding: '0.5rem 1rem' }}>+ Add Field</button>
+            </div>
           </div>
         )}
 
         {currentStep === 3 && (
           <div className="animate-fade-in" style={styles.formSection}>
-            <h2 style={styles.sectionTitle}>Team & Pricing</h2>
+            <h2 style={styles.sectionTitle}>Payment & Prize Pool</h2>
             
             <div style={styles.grid2}>
               <div className="input-group">
@@ -134,9 +149,15 @@ const CreateEvent = () => {
             </div>
 
             <div className="input-group" style={{ marginTop: '1rem' }}>
-              <label className="input-label">Pricing ($)</label>
+              <label className="input-label">Registration Fee ($)</label>
               <input type="number" className="input-field" defaultValue="0" min="0" placeholder="0 for Free" />
               <small style={{ color: 'var(--color-text-muted)', marginTop: '0.25rem' }}>Leave as 0 for free events.</small>
+            </div>
+
+            <div className="input-group" style={{ marginTop: '1rem' }}>
+              <label className="input-label">Prize Pool ($)</label>
+              <input type="number" className="input-field" defaultValue="1000" min="0" placeholder="e.g. 1000" />
+              <small style={{ color: 'var(--color-text-muted)', marginTop: '0.25rem' }}>Total reward for winners.</small>
             </div>
           </div>
         )}

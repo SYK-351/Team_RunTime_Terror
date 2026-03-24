@@ -8,6 +8,8 @@ import ParticipantDashboard from './pages/ParticipantDashboard';
 import OrganizerDashboard from './pages/organizer/Dashboard';
 import ManageEvent from './pages/organizer/ManageEvent';
 import CreateEvent from './pages/organizer/CreateEvent';
+import CreateEventPublic from './pages/CreateEventPublic';
+import MyEvents from './pages/MyEvents';
 import Login from './pages/auth/Login';
 import ProtectedRoute from './components/ProtectedRoute';
 import { AuthProvider } from './context/AuthContext';
@@ -37,6 +39,8 @@ function App() {
             <Route path="/home" element={<Home />} />
             <Route path="/events/:id" element={<EventDetails />} />
             <Route path="/my-events" element={<ParticipantDashboard />} />
+            <Route path="/create-event" element={<CreateEventPublic />} />
+            <Route path="/my-created-events" element={<MyEvents />} />
           </Route>
 
           {/* Protected Organizer Routes with Sidebar */}
