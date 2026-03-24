@@ -33,7 +33,7 @@ const Navbar = () => {
         {/* Logo */}
         <Link to="/home" style={styles.logo}>
           <div style={styles.logoIcon}></div>
-          <span>EventHub</span>
+          <span>Event Flex</span>
         </Link>
         
         {/* Search Bar - Center prominence */}

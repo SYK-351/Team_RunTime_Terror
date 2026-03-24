@@ -1,7 +1,7 @@
-# EventFlex – Student Event Management Hub
+# Event Flex – Student Event Management Hub
 
 ## Project Description
-EventFlex is a customizable event management platform designed specifically for students and college communities. It enables organizers to create and manage events with full control over rules, pricing, and structure, while participants can easily discover, register, and stay updated on events.
+Event Flex is a customizable event management platform designed specifically for students and college communities. It enables organizers to create and manage events with full control over rules, pricing, and structure, while participants can easily discover, register, and stay updated on events.
 
 ---
 

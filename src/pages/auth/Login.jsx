@@ -38,7 +38,7 @@ const Login = () => {
         <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
           <div style={styles.logoIcon}></div>
           <h2 style={{ marginTop: '1rem' }}>Welcome Back</h2>
-          <p style={{ color: 'var(--color-text-muted)' }}>Sign in to continue to EventHub</p>
+          <p style={{ color: 'var(--color-text-muted)' }}>Sign in to continue to Event Flex</p>
         </div>
         
         <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
