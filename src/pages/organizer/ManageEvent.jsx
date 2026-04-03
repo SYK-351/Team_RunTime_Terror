@@ -1,16 +1,30 @@
 import React, { useState } from 'react';
 import { Search, Edit3, Trash2, Megaphone, X } from 'lucide-react';
+import { useNotification } from '../../context/NotificationContext';
 
 const ManageEvent = () => {
   const [activeTab, setActiveTab] = useState('Participants');
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isAnnounceModalOpen, setIsAnnounceModalOpen] = useState(false);
+  const { triggerUpdate, triggerAnnouncement } = useNotification();
   const [eventDetails, setEventDetails] = useState({
     date: 'July 15 - 17, 2026',
     location: 'New York University, NY',
     fee: '0',
     prizePool: '1000'
   });
+  
+  const handleSaveChanges = () => {
+    triggerUpdate('HackNY Summer 2026');
+    setIsEditModalOpen(false);
+    alert('Changes saved! Registered users have been notified.');
+  };
+
+  const handleSendAnnouncement = () => {
+    triggerAnnouncement('HackNY Summer 2026');
+    alert('Notification Sent!');
+    setIsAnnounceModalOpen(false);
+  };
   
   const participants = [
     { id: 1, name: 'Alice Chen', email: 'alice@nyu.edu', status: 'Confirmed', ticket: 'General' },
@@ -169,7 +183,7 @@ const ManageEvent = () => {
                 <input type="number" className="input-field" value={eventDetails.prizePool} onChange={(e) => setEventDetails({...eventDetails, prizePool: e.target.value})} min="0" />
               </div>
             </div>
-            <button className="btn btn-primary" style={{ width: '100%', marginTop: '1.5rem' }} onClick={() => setIsEditModalOpen(false)}>Save Changes</button>
+            <button className="btn btn-primary" style={{ width: '100%', marginTop: '1.5rem' }} onClick={handleSaveChanges}>Save Changes</button>
           </div>
         </div>
       )}
@@ -189,7 +203,7 @@ const ManageEvent = () => {
               <input type="checkbox" id="emailNotif" defaultChecked />
               <label htmlFor="emailNotif" style={{ fontSize: 'var(--font-size-sm)' }}>Send via Email too</label>
             </div>
-            <button className="btn btn-primary" style={{ width: '100%' }} onClick={() => { alert('Notification Sent!'); setIsAnnounceModalOpen(false); }}>Send</button>
+            <button className="btn btn-primary" style={{ width: '100%' }} onClick={handleSendAnnouncement}>Send</button>
           </div>
         </div>
       )}

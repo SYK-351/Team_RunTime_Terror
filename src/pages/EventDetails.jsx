@@ -1,30 +1,72 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { Calendar, MapPin, Users, Globe, Share2, Heart, ShieldAlert } from 'lucide-react';
+import { useNotification } from '../context/NotificationContext';
+import { useAuth } from '../context/AuthContext';
+import { db } from '../firebase/config';
+import { doc, getDoc, collection, query, where, getDocs, addDoc } from 'firebase/firestore';
 
 const EventDetails = () => {
   const { id } = useParams();
   const [activeTab, setActiveTab] = useState('Overview');
+  const { triggerAnnouncement } = useNotification();
+  const { user } = useAuth();
+  const isOrganizer = user?.role === 'organizer';
+  
+  const [event, setEvent] = useState(null);
+  const [hasRegistered, setHasRegistered] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  // Mock Event Data based on ID or just generic
-  const event = {
-    title: 'HackNY Summer 2026',
-    organizer: 'NYU Computer Science Club',
-    date: 'July 15 - 17, 2026',
-    time: '09:00 AM EST',
-    location: 'NYU Kimmel Center, New York, NY',
-    attendees: 540,
-    price: 'Free',
-    tags: ['Hackathon', 'Coding', 'Open Source'],
-    description: `Join us for the largest student-run hackathon in NYC! HackNY Summer 2026 brings together the brightest minds to build innovative solutions over 48 hours. Whether you are a beginner or a seasoned pro, there's a place for you here.
+  useEffect(() => {
+    const fetchEventData = async () => {
+      try {
+        const eventDoc = await getDoc(doc(db, 'events', id));
+        if (eventDoc.exists()) {
+          setEvent({ id: eventDoc.id, ...eventDoc.data() });
+        }
+      } catch (err) {
+        console.error("Error fetching event:", err);
+      }
+      
+      if (user) {
+        try {
+          const q = query(collection(db, 'registrations'), where('eventId', '==', id), where('userId', '==', user.uid));
+          const sn = await getDocs(q);
+          if (!sn.empty) setHasRegistered(true);
+        } catch (err) {
+          console.error("Error checking registration:", err);
+        }
+      }
+      setLoading(false);
+    };
     
-    Expect amazing workshops, mentorship from industry leaders, and loads of swag and free food!`,
-    rules: [
-      'All code must be written during the hackathon.',
-      'Teams can have up to 4 members.',
-      'Be respectful and follow the MLH Code of Conduct.'
-    ]
+    fetchEventData();
+  }, [id, user]);
+
+  const handleRegister = async () => {
+    if (!user) {
+      alert("Please log in to register!");
+      return;
+    }
+    if (!hasRegistered) {
+      try {
+        await addDoc(collection(db, 'registrations'), {
+          eventId: event.id,
+          eventTitle: event.title,
+          userId: user.uid,
+          userEmail: user.email,
+          registeredAt: new Date().toISOString()
+        });
+        setHasRegistered(true);
+        alert("Successfully registered!");
+      } catch (err) {
+        alert("Failed to register: " + err.message);
+      }
+    }
   };
+
+  if (loading) return <div style={{ padding: '4rem', textAlign: 'center' }}>Loading Event...</div>;
+  if (!event) return <div style={{ padding: '4rem', textAlign: 'center' }}>Event not found.</div>;
 
   const TABS = ['Overview', 'Announcements', 'Discussion'];
 
@@ -35,12 +77,12 @@ const EventDetails = () => {
         <div style={styles.bannerOverlay}></div>
         <div className="container" style={styles.bannerContent}>
           <div style={styles.tagsRow}>
-            {event.tags.map((tag, idx) => (
+            {(event.tags || []).map((tag, idx) => (
               <span key={idx} style={styles.tag}>{tag}</span>
             ))}
           </div>
           <h1 style={styles.title}>{event.title}</h1>
-          <p style={styles.organizer}>Hosted by <strong>{event.organizer}</strong></p>
+          <p style={styles.organizer}>Hosted by <strong>{event.organizer || event.hostOrganization}</strong></p>
         </div>
       </div>
 
@@ -67,11 +109,11 @@ const EventDetails = () => {
             {activeTab === 'Overview' && (
               <div className="animate-fade-in">
                 <h3 style={styles.sectionHeader}>About Event</h3>
-                <p style={styles.descriptionText}>{event.description}</p>
+                <p style={styles.descriptionText}>{event.description || 'No description provided.'}</p>
                 
                 <h3 style={styles.sectionHeader}>Rules & Guidelines</h3>
                 <ul style={styles.rulesList}>
-                  {event.rules.map((rule, idx) => (
+                  {(event.rules || ['Follow general Code of Conduct']).map((rule, idx) => (
                     <li key={idx} style={styles.ruleItem}>
                       <ShieldAlert size={16} color="var(--color-primary)" />
                       <span>{rule}</span>
@@ -86,6 +128,18 @@ const EventDetails = () => {
                 <div style={styles.emptyIcon}>📢</div>
                 <h4>No announcements yet</h4>
                 <p style={{ color: 'var(--color-text-muted)' }}>The organizers haven't posted any updates.</p>
+                {isOrganizer && (
+                  <button 
+                    className="btn btn-primary" 
+                    style={{ marginTop: '1rem' }}
+                    onClick={() => {
+                      triggerAnnouncement(event.title);
+                      alert('Announcement sent to all registered participants!');
+                    }}
+                  >
+                    Post an Announcement
+                  </button>
+                )}
               </div>
             )}
 
@@ -122,7 +176,7 @@ const EventDetails = () => {
               <Calendar size={20} style={styles.infoIcon} />
               <div>
                 <p style={styles.infoLabel}>Date and Time</p>
-                <p style={styles.infoValue}>{event.date}</p>
+                <p style={styles.infoValue}>July 20, 2026</p>
                 <p style={styles.infoSub}>{event.time}</p>
               </div>
             </div>
@@ -139,8 +193,13 @@ const EventDetails = () => {
             <div style={styles.separator}></div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1rem' }}>
-              <button className="btn btn-primary" style={{ width: '100%', padding: '0.75rem' }}>
-                Register Now - {event.price}
+              <button 
+                className={`btn ${hasRegistered ? 'btn-secondary' : 'btn-primary'}`} 
+                style={{ width: '100%', padding: '0.75rem' }}
+                onClick={handleRegister}
+                disabled={hasRegistered}
+              >
+                {hasRegistered ? 'Registered' : `Register Now - ${event.price}`}
               </button>
               <div style={styles.actionRow}>
                 <button className="btn btn-secondary" style={{ flex: 1, justifyContent: 'center' }}>
